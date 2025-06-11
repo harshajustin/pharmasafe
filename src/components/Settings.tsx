@@ -32,8 +32,9 @@ const Settings: React.FC = () => {
   });
   const [saved, setSaved] = useState(false);
 
-  const canModifyApiSettings = hasPermission(user?.role || 'nurse', 'settings', 'write') && user?.role === 'admin';
-  const canViewApiSettings = hasPermission(user?.role || 'nurse', 'settings', 'read');
+  // Only admins can access API settings
+  const canViewApiSettings = user?.role === 'admin';
+  const canModifyApiSettings = user?.role === 'admin';
 
   const handleSave = () => {
     setSaved(true);
@@ -308,129 +309,150 @@ const Settings: React.FC = () => {
             )}
 
             {/* API Settings Tab - Admin Only */}
-            {activeTab === 'api' && canViewApiSettings && (
+            {activeTab === 'api' && (
               <div className="p-6">
-                <div className="flex items-center mb-6">
-                  <Database className="h-6 w-6 text-gray-600 mr-2" />
-                  <h2 className="text-xl font-semibold text-gray-900">API Configuration</h2>
-                </div>
-                
-                {!canModifyApiSettings && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-center">
-                      <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
-                      <p className="text-sm text-yellow-800">
-                        <strong>Restricted Access:</strong> Only administrators can modify API settings for security reasons.
-                      </p>
+                {!canViewApiSettings ? (
+                  // Access denied for non-admin users
+                  <div className="text-center py-12">
+                    <div className="bg-red-100 rounded-full p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+                      <Lock className="h-8 w-8 text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h2>
+                    <p className="text-gray-600 mb-4">
+                      API settings are only accessible to system administrators for security purposes.
+                    </p>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6 max-w-md mx-auto">
+                      <div className="flex items-center">
+                        <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+                        <p className="text-sm text-yellow-800">
+                          <strong>Your Role:</strong> {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                )}
-                
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">DrugBank API</h3>
-                    <div className="grid grid-cols-1 gap-4">
+                ) : (
+                  // API Settings content for admins
+                  <>
+                    <div className="flex items-center mb-6">
+                      <Database className="h-6 w-6 text-gray-600 mr-2" />
+                      <h2 className="text-xl font-semibold text-gray-900">API Configuration</h2>
+                    </div>
+                    
+                    {/* Admin Access Notice */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-center">
+                        <Shield className="h-5 w-5 text-blue-600 mr-2" />
+                        <p className="text-sm text-blue-800">
+                          <strong>Administrator Access:</strong> You have full access to API configuration and external integrations.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          API Key
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="password"
-                            value={apiSettings.drugbankApiKey}
-                            disabled={!canModifyApiSettings}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
-                          />
-                          <Key className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">DrugBank API</h3>
+                        <div className="grid grid-cols-1 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              API Key
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="password"
+                                value={apiSettings.drugbankApiKey}
+                                onChange={(e) => setApiSettings(prev => ({ ...prev, drugbankApiKey: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                              />
+                              <Key className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Max Requests per Minute
+                              </label>
+                              <input
+                                type="number"
+                                value={apiSettings.maxRequestsPerMinute}
+                                onChange={(e) => setApiSettings(prev => ({ ...prev, maxRequestsPerMinute: parseInt(e.target.value) }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Timeout (seconds)
+                              </label>
+                              <input
+                                type="number"
+                                value={apiSettings.timeout}
+                                onChange={(e) => setApiSettings(prev => ({ ...prev, timeout: parseInt(e.target.value) }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-gray-900">Enable Response Caching</p>
+                              <p className="text-sm text-gray-600">Cache API responses to improve performance</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={apiSettings.enableCache}
+                                onChange={(e) => setApiSettings(prev => ({ ...prev, enableCache: e.target.checked }))}
+                                className="sr-only peer" 
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Max Requests per Minute
-                          </label>
-                          <input
-                            type="number"
-                            value={apiSettings.maxRequestsPerMinute}
-                            disabled={!canModifyApiSettings}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Timeout (seconds)
-                          </label>
-                          <input
-                            type="number"
-                            value={apiSettings.timeout}
-                            disabled={!canModifyApiSettings}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
-                          />
+                      <div className="border-t border-gray-200 pt-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Connection Status</h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center">
+                              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                              <span className="font-medium text-green-900">DrugBank API</span>
+                            </div>
+                            <span className="text-green-700 text-sm">Connected</span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center">
+                              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                              <span className="font-medium text-green-900">Database</span>
+                            </div>
+                            <span className="text-green-700 text-sm">Online</span>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900">Enable Response Caching</p>
-                          <p className="text-sm text-gray-600">Cache API responses to improve performance</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={apiSettings.enableCache}
-                            disabled={!canModifyApiSettings}
-                            className="sr-only peer" 
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-disabled:opacity-50"></div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="border-t border-gray-200 pt-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Connection Status</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center">
-                          <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                          <span className="font-medium text-green-900">DrugBank API</span>
-                        </div>
-                        <span className="text-green-700 text-sm">Connected</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center">
-                          <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                          <span className="font-medium text-green-900">Database</span>
-                        </div>
-                        <span className="text-green-700 text-sm">Online</span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Admin-only API Management */}
-                  {user?.role === 'admin' && (
-                    <div className="border-t border-gray-200 pt-6">
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">API Management</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-blue-50 rounded-lg p-4">
-                          <h4 className="font-medium text-blue-900 mb-2">Rate Limiting</h4>
-                          <p className="text-sm text-blue-700 mb-3">Current: 60 requests/minute</p>
-                          <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                            Configure
-                          </button>
-                        </div>
-                        <div className="bg-green-50 rounded-lg p-4">
-                          <h4 className="font-medium text-green-900 mb-2">API Keys</h4>
-                          <p className="text-sm text-green-700 mb-3">Manage external integrations</p>
-                          <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                            Manage Keys
-                          </button>
+                      {/* API Management */}
+                      <div className="border-t border-gray-200 pt-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">API Management</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-blue-50 rounded-lg p-4">
+                            <h4 className="font-medium text-blue-900 mb-2">Rate Limiting</h4>
+                            <p className="text-sm text-blue-700 mb-3">Current: 60 requests/minute</p>
+                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                              Configure
+                            </button>
+                          </div>
+                          <div className="bg-green-50 rounded-lg p-4">
+                            <h4 className="font-medium text-green-900 mb-2">API Keys</h4>
+                            <p className="text-sm text-green-700 mb-3">Manage external integrations</p>
+                            <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                              Manage Keys
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             )}
 
