@@ -13,7 +13,9 @@ import {
   BarChart3,
   Filter,
   PieChart,
-  Lock
+  Lock,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { InteractionReport } from '../types';
 
@@ -26,6 +28,7 @@ const Reports: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('7days');
   const [generating, setGenerating] = useState(false);
+  const [expandedReports, setExpandedReports] = useState<{ [key: string]: boolean }>({});
 
   const canWriteReports = hasPermission(user?.role || 'nurse', 'reports', 'write');
   const canExecuteReports = hasPermission(user?.role || 'nurse', 'reports', 'execute');
@@ -131,6 +134,13 @@ const Reports: React.FC = () => {
     setGenerating(false);
   };
 
+  const toggleReportExpansion = (reportId: string) => {
+    setExpandedReports(prev => ({
+      ...prev,
+      [reportId]: !prev[reportId]
+    }));
+  };
+
   const filteredReports = reports.filter(report =>
     report.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     report.generatedBy.toLowerCase().includes(searchTerm.toLowerCase())
@@ -167,36 +177,39 @@ const Reports: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Interaction Reports</h1>
-          <p className="text-gray-600">Generate and manage drug interaction analysis reports</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Interaction Reports</h1>
+          <p className="text-gray-600 text-sm sm:text-base">Generate and manage drug interaction analysis reports</p>
         </div>
         <div className="flex space-x-3">
           {canExecuteReports ? (
             <button 
               onClick={generateNewReport}
               disabled={generating}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center transition-colors w-full sm:w-auto justify-center"
             >
               {generating ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Generating...
+                  <span className="hidden sm:inline">Generating...</span>
+                  <span className="sm:hidden">Generating...</span>
                 </>
               ) : (
                 <>
                   <FileText className="h-5 w-5 mr-2" />
-                  Generate Report
+                  <span className="hidden sm:inline">Generate Report</span>
+                  <span className="sm:hidden">Generate</span>
                 </>
               )}
             </button>
           ) : (
-            <div className="bg-gray-100 text-gray-500 px-4 py-2 rounded-lg flex items-center">
+            <div className="bg-gray-100 text-gray-500 px-4 py-2 rounded-lg flex items-center w-full sm:w-auto justify-center">
               <Lock className="h-5 w-5 mr-2" />
-              View Only Access
+              <span className="hidden sm:inline">View Only Access</span>
+              <span className="sm:hidden">View Only</span>
             </div>
           )}
         </div>
@@ -205,8 +218,8 @@ const Reports: React.FC = () => {
       {/* Role-based access notice */}
       {!canExecuteReports && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+          <div className="flex items-start">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-yellow-800">
               <strong>Limited Access:</strong> You can view existing reports but cannot generate new ones. Contact a doctor to request new reports.
             </p>
@@ -215,7 +228,7 @@ const Reports: React.FC = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -249,52 +262,52 @@ const Reports: React.FC = () => {
       </div>
 
       {/* Reports Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <FileText className="h-6 w-6 text-blue-600" />
+              <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Reports</p>
-              <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-600 truncate">Total Reports</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{reports.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center">
             <div className="p-2 bg-red-100 rounded-lg">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+              <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">High Risk</p>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-600 truncate">High Risk</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {reports.filter(r => r.riskLevel === 'high').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg">
-              <BarChart3 className="h-6 w-6 text-yellow-600" />
+              <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Medium Risk</p>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-600 truncate">Medium Risk</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {reports.filter(r => r.riskLevel === 'medium').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
-              <PieChart className="h-6 w-6 text-green-600" />
+              <PieChart className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Low Risk</p>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-600 truncate">Low Risk</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {reports.filter(r => r.riskLevel === 'low').length}
               </p>
             </div>
@@ -304,29 +317,29 @@ const Reports: React.FC = () => {
 
       {/* Reports List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Recent Reports</h2>
         </div>
         <div className="divide-y divide-gray-200">
           {filteredReports.map((report) => (
-            <div key={report.id} className="p-6 hover:bg-gray-50 transition-colors">
+            <div key={report.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <User className="h-5 w-5 text-gray-400" />
-                    <h3 className="text-lg font-medium text-gray-900">{report.patientName}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskLevelColor(report.riskLevel)}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 break-words">{report.patientName}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskLevelColor(report.riskLevel)} flex-shrink-0`}>
                       {report.riskLevel.toUpperCase()} RISK
                     </span>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-4">
                     <div>
                       <p className="text-sm text-gray-600 flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Generated: {new Date(report.generatedAt).toLocaleDateString()}
+                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">Generated: {new Date(report.generatedAt).toLocaleDateString()}</span>
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 truncate">
                         By: {report.generatedBy}
                       </p>
                     </div>
@@ -340,25 +353,37 @@ const Reports: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Interactions Summary */}
+                  {/* Expandable Interactions Summary */}
                   {report.interactions.length > 0 && (
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Detected Interactions:</h4>
-                      <div className="space-y-2">
-                        {report.interactions.map((interaction) => (
-                          <div key={interaction.id} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="text-sm font-medium text-gray-900">
-                                {interaction.drug1} + {interaction.drug2}
-                              </span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(interaction.severity)}`}>
-                                {interaction.severity.toUpperCase()}
-                              </span>
+                      <button
+                        onClick={() => toggleReportExpansion(report.id)}
+                        className="flex items-center text-sm font-medium text-gray-900 mb-2 hover:text-gray-700"
+                      >
+                        <span>Detected Interactions:</span>
+                        {expandedReports[report.id] ? (
+                          <ChevronUp className="h-4 w-4 ml-1" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 ml-1" />
+                        )}
+                      </button>
+                      {expandedReports[report.id] && (
+                        <div className="space-y-2">
+                          {report.interactions.map((interaction) => (
+                            <div key={interaction.id} className="bg-gray-50 rounded-lg p-3">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                                <span className="text-sm font-medium text-gray-900 break-words">
+                                  {interaction.drug1} + {interaction.drug2}
+                                </span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(interaction.severity)} flex-shrink-0`}>
+                                  {interaction.severity.toUpperCase()}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-600 break-words">{interaction.description}</p>
                             </div>
-                            <p className="text-xs text-gray-600">{interaction.description}</p>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -367,22 +392,23 @@ const Reports: React.FC = () => {
                     <h4 className="text-sm font-medium text-gray-900 mb-2">Recommendations:</h4>
                     <ul className="text-sm text-gray-600 space-y-1">
                       {report.recommendations.map((rec, index) => (
-                        <li key={index} className="flex items-center">
-                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                          {rec}
+                        <li key={index} className="flex items-start">
+                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-2 flex-shrink-0"></span>
+                          <span className="break-words">{rec}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 </div>
 
-                <div className="ml-6 flex flex-col space-y-2">
+                <div className="ml-4 sm:ml-6 flex flex-col space-y-2 flex-shrink-0">
                   <button className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center">
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
+                    <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    <span className="hidden sm:inline">Download</span>
                   </button>
                   <button className="bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                    View Details
+                    <span className="hidden sm:inline">View Details</span>
+                    <span className="sm:hidden">Details</span>
                   </button>
                 </div>
               </div>

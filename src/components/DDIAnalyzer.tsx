@@ -13,7 +13,9 @@ import {
   Lock,
   Pill,
   FileText,
-  Download
+  Download,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface MockDrugInteraction {
@@ -42,6 +44,7 @@ const DDIAnalyzer: React.FC = () => {
   const [analysisResults, setAnalysisResults] = useState<MockDrugInteraction[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [simulateMode, setSimulateMode] = useState(false);
+  const [expandedInteractions, setExpandedInteractions] = useState<{ [key: string]: boolean }>({});
 
   // Mock medication database
   const mockMedications = [
@@ -170,6 +173,13 @@ const DDIAnalyzer: React.FC = () => {
     setAnalysisResults([]);
   };
 
+  const toggleInteractionExpansion = (interactionId: string) => {
+    setExpandedInteractions(prev => ({
+      ...prev,
+      [interactionId]: !prev[interactionId]
+    }));
+  };
+
   const analyzeInteractions = async () => {
     if (selectedMedications.length < 2) {
       alert('Please select at least 2 medications for interaction analysis');
@@ -225,15 +235,15 @@ const DDIAnalyzer: React.FC = () => {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'Critical':
-        return <XCircle className="h-5 w-5 text-red-600" />;
+        return <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />;
       case 'High':
-        return <AlertTriangle className="h-5 w-5 text-orange-600" />;
+        return <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />;
       case 'Moderate':
-        return <Info className="h-5 w-5 text-yellow-600" />;
+        return <Info className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />;
       case 'Low':
-        return <CheckCircle className="h-5 w-5 text-blue-600" />;
+        return <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />;
       default:
-        return <Info className="h-5 w-5 text-gray-600" />;
+        return <Info className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />;
     }
   };
 
@@ -242,19 +252,19 @@ const DDIAnalyzer: React.FC = () => {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-md w-full">
           <div className="text-center">
             <div className="bg-red-100 rounded-full p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
               <Lock className="h-8 w-8 text-red-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Access Restricted</h2>
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
               Drug-Drug Interaction analysis is only available to Doctors and Administrators for clinical safety.
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
               <div className="flex items-center">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0" />
                 <p className="text-sm text-yellow-800">
                   <strong>Your Role:</strong> {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
                 </p>
@@ -262,7 +272,7 @@ const DDIAnalyzer: React.FC = () => {
             </div>
             <button
               onClick={() => window.history.back()}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto"
             >
               Go Back
             </button>
@@ -273,12 +283,12 @@ const DDIAnalyzer: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Drug-Drug Interaction Analyzer</h1>
-          <p className="text-gray-600">Analyze potential interactions between medications</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Drug-Drug Interaction Analyzer</h1>
+          <p className="text-gray-600 text-sm sm:text-base">Analyze potential interactions between medications</p>
         </div>
         <div className="flex items-center space-x-3">
           <div className="flex items-center">
@@ -291,32 +301,33 @@ const DDIAnalyzer: React.FC = () => {
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
-            <span className="ml-2 text-sm text-gray-600">Simulate DrugBank API</span>
+            <span className="ml-2 text-sm text-gray-600 hidden sm:inline">Simulate DrugBank API</span>
+            <span className="ml-2 text-xs text-gray-600 sm:hidden">Simulate API</span>
           </div>
         </div>
       </div>
 
       {/* Access Notice */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center">
-          <Shield className="h-5 w-5 text-blue-600 mr-2" />
+        <div className="flex items-start">
+          <Shield className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-800">
             <strong>Clinical Access:</strong> You have authorized access to perform drug interaction analysis.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
         {/* Medication Selection */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Pill className="h-5 w-5 mr-2" />
                 Select Medications
               </h2>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {/* Search */}
               <div className="relative mb-4">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -341,11 +352,11 @@ const DDIAnalyzer: React.FC = () => {
                         onClick={() => addMedication(medication)}
                         className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center justify-between"
                       >
-                        <div>
-                          <span className="font-medium text-gray-900">{medication.name}</span>
-                          <span className="text-sm text-gray-500 ml-2">({medication.category})</span>
+                        <div className="min-w-0 flex-1">
+                          <span className="font-medium text-gray-900 block truncate">{medication.name}</span>
+                          <span className="text-sm text-gray-500 block truncate">({medication.category})</span>
                         </div>
-                        <Plus className="h-4 w-4 text-blue-500" />
+                        <Plus className="h-4 w-4 text-blue-500 flex-shrink-0 ml-2" />
                       </button>
                     ))
                   ) : (
@@ -366,10 +377,10 @@ const DDIAnalyzer: React.FC = () => {
                         key={medication.id}
                         className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg"
                       >
-                        <span className="font-medium text-blue-900">{medication.name}</span>
+                        <span className="font-medium text-blue-900 truncate flex-1 mr-2">{medication.name}</span>
                         <button
                           onClick={() => removeMedication(medication.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors"
+                          className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -379,7 +390,7 @@ const DDIAnalyzer: React.FC = () => {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Pill className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No medications selected</p>
+                    <p className="mb-1">No medications selected</p>
                     <p className="text-sm">Search and add medications to analyze interactions</p>
                   </div>
                 )}
@@ -395,12 +406,16 @@ const DDIAnalyzer: React.FC = () => {
                   {isAnalyzing ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      {simulateMode ? 'Connecting to DrugBank API...' : 'Analyzing Interactions...'}
+                      <span className="hidden sm:inline">
+                        {simulateMode ? 'Connecting to DrugBank API...' : 'Analyzing Interactions...'}
+                      </span>
+                      <span className="sm:hidden">Analyzing...</span>
                     </>
                   ) : (
                     <>
                       <Activity className="h-5 w-5 mr-2" />
-                      Analyze Interactions
+                      <span className="hidden sm:inline">Analyze Interactions</span>
+                      <span className="sm:hidden">Analyze</span>
                     </>
                   )}
                 </button>
@@ -415,27 +430,27 @@ const DDIAnalyzer: React.FC = () => {
         </div>
 
         {/* Analysis Results */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                 <AlertTriangle className="h-5 w-5 mr-2" />
-                Interaction Analysis Results
+                <span className="truncate">Interaction Analysis Results</span>
               </h2>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {!showResults ? (
                 <div className="text-center py-12 text-gray-500">
                   <Activity className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">No Analysis Performed</p>
+                  <p className="text-lg font-medium mb-2">No Analysis Performed</p>
                   <p className="text-sm">Select medications and click "Analyze Interactions" to see results</p>
                 </div>
               ) : analysisResults.length === 0 ? (
                 <div className="text-center py-12">
                   <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                  <p className="text-lg font-medium text-green-800">No Interactions Found</p>
-                  <p className="text-sm text-green-600">The selected medications appear to be safe to use together</p>
-                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-lg font-medium text-green-800 mb-2">No Interactions Found</p>
+                  <p className="text-sm text-green-600 mb-4">The selected medications appear to be safe to use together</p>
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-xs text-green-700">
                       <strong>Note:</strong> This analysis is based on known drug interactions. Always consult clinical guidelines and consider patient-specific factors.
                     </p>
@@ -443,53 +458,69 @@ const DDIAnalyzer: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <span className="text-sm font-medium text-gray-700">
                       {analysisResults.length} interaction{analysisResults.length !== 1 ? 's' : ''} detected
                     </span>
-                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
+                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center sm:justify-start">
                       <Download className="h-4 w-4 mr-1" />
                       Export Report
                     </button>
                   </div>
 
                   {analysisResults.map((interaction) => (
-                    <div key={interaction.id} className={`border rounded-lg p-4 ${getSeverityColor(interaction.severity)}`}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center">
-                          {getSeverityIcon(interaction.severity)}
-                          <div className="ml-3">
-                            <h3 className="font-semibold text-gray-900">
-                              {interaction.drug1} + {interaction.drug2}
-                            </h3>
-                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getSeverityColor(interaction.severity)}`}>
-                              {interaction.severity.toUpperCase()} SEVERITY
-                            </span>
+                    <div key={interaction.id} className={`border rounded-lg ${getSeverityColor(interaction.severity)}`}>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center min-w-0 flex-1">
+                            {getSeverityIcon(interaction.severity)}
+                            <div className="ml-3 min-w-0 flex-1">
+                              <h3 className="font-semibold text-gray-900 break-words">
+                                {interaction.drug1} + {interaction.drug2}
+                              </h3>
+                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getSeverityColor(interaction.severity)}`}>
+                                {interaction.severity.toUpperCase()} SEVERITY
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-800 mb-1">Clinical Effect:</h4>
-                          <p className="text-sm text-gray-700">{interaction.effect}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-800 mb-1">Recommendation:</h4>
-                          <p className="text-sm text-gray-700">{interaction.recommendation}</p>
+                          <button
+                            onClick={() => toggleInteractionExpansion(interaction.id)}
+                            className="ml-2 p-1 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                          >
+                            {expandedInteractions[interaction.id] ? (
+                              <ChevronUp className="h-5 w-5" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5" />
+                            )}
+                          </button>
                         </div>
 
-                        {interaction.mechanism && (
+                        <div className="space-y-3">
                           <div>
-                            <h4 className="text-sm font-medium text-gray-800 mb-1">Mechanism:</h4>
-                            <p className="text-sm text-gray-700">{interaction.mechanism}</p>
+                            <h4 className="text-sm font-medium text-gray-800 mb-1">Clinical Effect:</h4>
+                            <p className="text-sm text-gray-700 break-words">{interaction.effect}</p>
                           </div>
-                        )}
 
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-800 mb-1">Clinical Significance:</h4>
-                          <p className="text-sm text-gray-700">{interaction.clinicalSignificance}</p>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-800 mb-1">Recommendation:</h4>
+                            <p className="text-sm text-gray-700 break-words">{interaction.recommendation}</p>
+                          </div>
+
+                          {expandedInteractions[interaction.id] && (
+                            <>
+                              {interaction.mechanism && (
+                                <div>
+                                  <h4 className="text-sm font-medium text-gray-800 mb-1">Mechanism:</h4>
+                                  <p className="text-sm text-gray-700 break-words">{interaction.mechanism}</p>
+                                </div>
+                              )}
+
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-800 mb-1">Clinical Significance:</h4>
+                                <p className="text-sm text-gray-700 break-words">{interaction.clinicalSignificance}</p>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -498,18 +529,18 @@ const DDIAnalyzer: React.FC = () => {
                   {/* Summary */}
                   <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">Analysis Summary</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
                         <span className="text-gray-600">Total Medications:</span>
-                        <span className="font-medium text-gray-900 ml-2">{selectedMedications.length}</span>
+                        <span className="font-medium text-gray-900">{selectedMedications.length}</span>
                       </div>
-                      <div>
+                      <div className="flex justify-between">
                         <span className="text-gray-600">Interactions Found:</span>
-                        <span className="font-medium text-gray-900 ml-2">{analysisResults.length}</span>
+                        <span className="font-medium text-gray-900">{analysisResults.length}</span>
                       </div>
-                      <div>
+                      <div className="flex justify-between">
                         <span className="text-gray-600">Highest Severity:</span>
-                        <span className="font-medium text-gray-900 ml-2">
+                        <span className="font-medium text-gray-900">
                           {analysisResults.length > 0 
                             ? analysisResults.reduce((max, curr) => {
                                 const severityOrder = { 'Low': 1, 'Moderate': 2, 'High': 3, 'Critical': 4 };
@@ -519,9 +550,9 @@ const DDIAnalyzer: React.FC = () => {
                           }
                         </span>
                       </div>
-                      <div>
+                      <div className="flex justify-between">
                         <span className="text-gray-600">Analysis Date:</span>
-                        <span className="font-medium text-gray-900 ml-2">{new Date().toLocaleDateString()}</span>
+                        <span className="font-medium text-gray-900">{new Date().toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>

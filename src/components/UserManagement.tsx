@@ -13,7 +13,8 @@ import {
   Shield,
   Mail,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 
@@ -124,9 +125,17 @@ const UserManagement: React.FC = () => {
     };
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New User</h3>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Add New User</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 p-1"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -182,7 +191,7 @@ const UserManagement: React.FC = () => {
               />
             </div>
             
-            <div className="flex space-x-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
                 type="submit"
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
@@ -226,17 +235,17 @@ const UserManagement: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage system users and their roles</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">User Management</h1>
+          <p className="text-gray-600 text-sm sm:text-base">Manage system users and their roles</p>
         </div>
         {canManageUsers && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors w-full sm:w-auto justify-center"
           >
             <Plus className="h-5 w-5 mr-2" />
             Add User
@@ -245,7 +254,7 @@ const UserManagement: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -282,12 +291,112 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Users Table */}
+      {/* Users Table - Mobile Responsive */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">System Users</h2>
         </div>
-        <div className="overflow-x-auto">
+        
+        {/* Mobile Cards View */}
+        <div className="block sm:hidden divide-y divide-gray-200">
+          {filteredUsers.map((user) => (
+            <div key={user.id} className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center min-w-0 flex-1">
+                  <div className="bg-gray-100 rounded-full p-2 mr-3 flex-shrink-0">
+                    <Users className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-gray-900 truncate">{user.name}</div>
+                    <div className="text-sm text-gray-500 flex items-center truncate">
+                      <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                      {user.email}
+                    </div>
+                  </div>
+                </div>
+                {canManageUsers && (
+                  <div className="flex space-x-1 flex-shrink-0">
+                    <button
+                      onClick={() => handleToggleUserStatus(user.id)}
+                      className={`${
+                        user.isActive 
+                          ? 'text-red-600 hover:text-red-900' 
+                          : 'text-green-600 hover:text-green-900'
+                      } transition-colors p-1`}
+                      title={user.isActive ? 'Deactivate user' : 'Activate user'}
+                    >
+                      {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={() => setEditingUser(user)}
+                      className="text-blue-600 hover:text-blue-900 transition-colors p-1"
+                      title="Edit user"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    {canDeleteUsers && user.id !== currentUser?.id && (
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-600 hover:text-red-900 transition-colors p-1"
+                        title="Delete user"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Role:</span>
+                  <div className="mt-1">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                      <Shield className="h-3 w-3 mr-1" />
+                      {getRoleDisplayName(user.role)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-600">Status:</span>
+                  <div className="mt-1">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      user.isActive 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {user.isActive ? (
+                        <>
+                          <UserCheck className="h-3 w-3 mr-1" />
+                          Active
+                        </>
+                      ) : (
+                        <>
+                          <UserX className="h-3 w-3 mr-1" />
+                          Inactive
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-600">Department:</span>
+                  <div className="text-gray-900 truncate">{user.department || 'N/A'}</div>
+                </div>
+                <div>
+                  <span className="text-gray-600">Created:</span>
+                  <div className="text-gray-900 flex items-center">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

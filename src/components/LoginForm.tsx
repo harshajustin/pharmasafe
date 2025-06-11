@@ -31,14 +31,14 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full space-y-6 sm:space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
             <div className="bg-blue-600 rounded-full p-3">
-              <Shield className="h-12 w-12 text-white" />
+              <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-white" />
             </div>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-4 sm:mt-6 text-2xl sm:text-3xl font-bold text-gray-900">
             MedSafe DDI System
           </h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -46,12 +46,12 @@ const LoginForm: React.FC = () => {
           </p>
         </div>
         
-        <div className="bg-white py-8 px-6 shadow-xl rounded-lg">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="bg-white py-6 sm:py-8 px-4 sm:px-6 shadow-xl rounded-lg">
+          <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-center">
-                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-                <span className="text-sm text-red-600">{error}</span>
+              <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start">
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-red-600 break-words">{error}</span>
               </div>
             )}
             
@@ -110,29 +110,29 @@ const LoginForm: React.FC = () => {
             </div>
           </form>
 
-          <div className="mt-6 border-t border-gray-200 pt-6">
+          <div className="mt-4 sm:mt-6 border-t border-gray-200 pt-4 sm:pt-6">
             <div className="text-sm text-gray-600">
               <p className="font-medium mb-3">Demo Credentials (Password: password):</p>
               <div className="space-y-3">
                 {demoUsers.map((user, index) => (
                   <div key={index} className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 text-gray-500 mr-2" />
-                        <div>
-                          <p className="font-medium text-gray-900">{user.role}</p>
-                          <p className="text-xs text-gray-500">{user.description}</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="flex items-start sm:items-center min-w-0 flex-1">
+                        <User className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0 mt-0.5 sm:mt-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-900 truncate">{user.role}</p>
+                          <p className="text-xs text-gray-500 break-words">{user.description}</p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => setEmail(user.email)}
-                        className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                        className="text-blue-600 hover:text-blue-700 text-xs font-medium flex-shrink-0 self-start sm:self-center"
                       >
                         Use
                       </button>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">{user.email}</p>
+                    <p className="text-xs text-gray-600 mt-1 break-all">{user.email}</p>
                   </div>
                 ))}
               </div>

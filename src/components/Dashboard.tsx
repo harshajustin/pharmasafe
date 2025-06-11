@@ -246,23 +246,23 @@ const Dashboard: React.FC = () => {
     change?: string;
     description?: string;
   }> = ({ title, value, icon: Icon, color, change, description }) => (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-600 truncate">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
           {change && (
             <p className="text-sm text-green-600 flex items-center mt-1">
-              <TrendingUp className="h-4 w-4 mr-1" />
-              {change}
+              <TrendingUp className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{change}</span>
             </p>
           )}
           {description && (
-            <p className="text-xs text-gray-500 mt-1">{description}</p>
+            <p className="text-xs text-gray-500 mt-1 truncate">{description}</p>
           )}
         </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <Icon className="h-6 w-6 text-white" />
+        <div className={`p-2 sm:p-3 rounded-full ${color} flex-shrink-0 ml-3`}>
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
         </div>
       </div>
     </div>
@@ -270,44 +270,44 @@ const Dashboard: React.FC = () => {
 
   const ActivityIcon: React.FC<{ type: string; severity?: string }> = ({ type, severity }) => {
     if (type === 'alert') {
-      return <AlertTriangle className={`h-5 w-5 ${severity === 'high' ? 'text-red-500' : 'text-yellow-500'}`} />;
+      return <AlertTriangle className={`h-4 w-4 sm:h-5 sm:w-5 ${severity === 'high' ? 'text-red-500' : 'text-yellow-500'}`} />;
     } else if (type === 'report') {
-      return <FileText className="h-5 w-5 text-blue-500" />;
+      return <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />;
     } else if (type === 'user') {
-      return <UserCog className="h-5 w-5 text-purple-500" />;
+      return <UserCog className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />;
     } else if (type === 'system') {
-      return <Settings className="h-5 w-5 text-gray-500" />;
+      return <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />;
     } else {
-      return <Activity className="h-5 w-5 text-green-500" />;
+      return <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />;
     }
   };
 
   const SystemStatusWidget: React.FC = () => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-          <Database className="h-5 w-5 mr-2" />
-          System Status
+          <Database className="h-5 w-5 mr-2 flex-shrink-0" />
+          <span className="truncate">System Status</span>
         </h2>
       </div>
-      <div className="p-6 space-y-3">
+      <div className="p-4 sm:p-6 space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">DrugBank API</span>
-          <div className="flex items-center">
+          <span className="text-sm text-gray-600 truncate">DrugBank API</span>
+          <div className="flex items-center flex-shrink-0 ml-2">
             <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600">Online</span>
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Database</span>
-          <div className="flex items-center">
+          <span className="text-sm text-gray-600 truncate">Database</span>
+          <div className="flex items-center flex-shrink-0 ml-2">
             <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600">Connected</span>
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Audit Logging</span>
-          <div className="flex items-center">
+          <span className="text-sm text-gray-600 truncate">Audit Logging</span>
+          <div className="flex items-center flex-shrink-0 ml-2">
             <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600">Active</span>
           </div>
@@ -315,12 +315,12 @@ const Dashboard: React.FC = () => {
         {user?.role === 'admin' && (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">System Load</span>
-              <span className="text-sm text-gray-900">23%</span>
+              <span className="text-sm text-gray-600 truncate">System Load</span>
+              <span className="text-sm text-gray-900 flex-shrink-0">23%</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Memory Usage</span>
-              <span className="text-sm text-gray-900">67%</span>
+              <span className="text-sm text-gray-600 truncate">Memory Usage</span>
+              <span className="text-sm text-gray-900 flex-shrink-0">67%</span>
             </div>
           </>
         )}
@@ -330,25 +330,25 @@ const Dashboard: React.FC = () => {
 
   const UserActivityWidget: React.FC = () => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-          <Activity className="h-5 w-5 mr-2" />
-          User Activity
+          <Activity className="h-5 w-5 mr-2 flex-shrink-0" />
+          <span className="truncate">User Activity</span>
         </h2>
       </div>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Active Sessions</span>
-            <span className="text-sm font-medium text-gray-900">12</span>
+            <span className="text-sm text-gray-600 truncate">Active Sessions</span>
+            <span className="text-sm font-medium text-gray-900 flex-shrink-0">12</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Today's Logins</span>
-            <span className="text-sm font-medium text-gray-900">28</span>
+            <span className="text-sm text-gray-600 truncate">Today's Logins</span>
+            <span className="text-sm font-medium text-gray-900 flex-shrink-0">28</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Failed Attempts</span>
-            <span className="text-sm font-medium text-red-600">3</span>
+            <span className="text-sm text-gray-600 truncate">Failed Attempts</span>
+            <span className="text-sm font-medium text-red-600 flex-shrink-0">3</span>
           </div>
         </div>
       </div>
@@ -356,36 +356,36 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header with Role-based Welcome */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 sm:p-6 border border-blue-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
               {dashboardConfig.welcomeMessage}
             </h1>
-            <p className="text-gray-600 mt-1">{dashboardConfig.subtitle}</p>
-            <div className="flex items-center mt-3">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleColor(user?.role || 'nurse')}`}>
-                <Shield className="h-4 w-4 mr-1" />
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">{dashboardConfig.subtitle}</p>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <span className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getRoleColor(user?.role || 'nurse')}`}>
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {getRoleDisplayName(user?.role || 'nurse')}
               </span>
               {user?.department && (
-                <span className="ml-3 text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600">
                   {user.department} Department
                 </span>
               )}
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-left sm:text-right mt-4 sm:mt-0 flex-shrink-0">
             <p className="text-sm text-gray-600">Last Login</p>
-            <p className="text-lg font-semibold text-gray-900">Today, 9:30 AM</p>
+            <p className="text-base sm:text-lg font-semibold text-gray-900">Today, 9:30 AM</p>
           </div>
         </div>
       </div>
 
       {/* Role-based Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           title="Total Patients"
           value={stats.totalPatients}
@@ -450,14 +450,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
         {/* Recent Activity */}
-        <div className={user?.role === 'admin' ? 'lg:col-span-2' : 'lg:col-span-2'}>
+        <div className="xl:col-span-2">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="space-y-4">
                 {recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start space-x-3">
@@ -465,16 +465,16 @@ const Dashboard: React.FC = () => {
                       <ActivityIcon type={activity.type} severity={activity.severity} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-gray-900 break-words">
                         {activity.description}
                       </p>
-                      <div className="flex items-center mt-1 space-x-2">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         <p className="text-sm text-gray-500 flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
+                          <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                           {activity.time}
                         </p>
                         {activity.user && (
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-400 truncate">
                             by {activity.user}
                           </p>
                         )}
@@ -491,10 +491,10 @@ const Dashboard: React.FC = () => {
         <div className="space-y-6">
           {/* Role-based Quick Actions */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
             </div>
-            <div className="p-6 space-y-3">
+            <div className="p-4 sm:p-6 space-y-3">
               {getQuickActions().map((action) => {
                 const Icon = action.icon;
                 return (
@@ -504,8 +504,8 @@ const Dashboard: React.FC = () => {
                     className={`w-full ${action.color} font-medium py-3 px-4 rounded-lg transition-colors text-left`}
                   >
                     <div className="flex items-center">
-                      <Icon className="h-5 w-5 mr-3" />
-                      {action.label}
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5 mr-3 flex-shrink-0" />
+                      <span className="truncate">{action.label}</span>
                     </div>
                   </button>
                 );
@@ -515,7 +515,7 @@ const Dashboard: React.FC = () => {
               {user?.role === 'nurse' && getQuickActions().length < 3 && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                   <div className="flex items-center text-gray-600">
-                    <Lock className="h-4 w-4 mr-2" />
+                    <Lock className="h-4 w-4 mr-2 flex-shrink-0" />
                     <span className="text-sm">Limited actions available for your role</span>
                   </div>
                 </div>
@@ -534,17 +534,17 @@ const Dashboard: React.FC = () => {
       {/* Admin-only System Overview */}
       {user?.role === 'admin' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Shield className="h-5 w-5 mr-2" />
-              System Administration Overview
+              <Shield className="h-5 w-5 mr-2 flex-shrink-0" />
+              <span className="truncate">System Administration Overview</span>
             </h2>
           </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               <div className="bg-blue-50 rounded-lg p-4">
                 <h3 className="font-medium text-blue-900 mb-2">Security Status</h3>
-                <p className="text-sm text-blue-700">All systems secure. No threats detected.</p>
+                <p className="text-sm text-blue-700 mb-3">All systems secure. No threats detected.</p>
                 <div className="mt-2">
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <CheckCircle className="h-3 w-3 mr-1" />
@@ -555,7 +555,7 @@ const Dashboard: React.FC = () => {
               
               <div className="bg-green-50 rounded-lg p-4">
                 <h3 className="font-medium text-green-900 mb-2">Backup Status</h3>
-                <p className="text-sm text-green-700">Last backup: 2 hours ago</p>
+                <p className="text-sm text-green-700 mb-3">Last backup: 2 hours ago</p>
                 <div className="mt-2">
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <CheckCircle className="h-3 w-3 mr-1" />
@@ -566,7 +566,7 @@ const Dashboard: React.FC = () => {
               
               <div className="bg-yellow-50 rounded-lg p-4">
                 <h3 className="font-medium text-yellow-900 mb-2">Maintenance</h3>
-                <p className="text-sm text-yellow-700">Next scheduled: Sunday 2:00 AM</p>
+                <p className="text-sm text-yellow-700 mb-3">Next scheduled: Sunday 2:00 AM</p>
                 <div className="mt-2">
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                     <Clock className="h-3 w-3 mr-1" />
