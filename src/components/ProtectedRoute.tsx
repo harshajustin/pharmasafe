@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { canAccessRoute } from '../utils/rbac';
+import { canAccessRoute, hasPermission } from '../utils/rbac';
 import { AlertTriangle } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -59,7 +59,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check permission-based access
   if (requiredPermission) {
-    const { hasPermission } = require('../utils/rbac');
     if (!hasPermission(user.role, requiredPermission.resource, requiredPermission.action)) {
       return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center">
