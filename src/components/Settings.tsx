@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/rbac';
 import {
   User,
   Shield,
@@ -20,8 +21,8 @@ const Settings: React.FC = () => {
   const [notifications, setNotifications] = useState({
     criticalInteractions: true,
     reportGeneration: true,
-    systemAlerts: false,
-    auditAlerts: user?.role === 'doctor'
+    systemAlerts: user?.role === 'admin',
+    auditAlerts: user?.role === 'admin'
   });
   const [apiSettings, setApiSettings] = useState({
     drugbankApiKey: '••••••••••••••••',
@@ -30,6 +31,9 @@ const Settings: React.FC = () => {
     enableCache: true
   });
   const [saved, setSaved] = useState(false);
+
+  const canModifyApiSettings = hasPermission(user?.role || 'nurse', 'settings', 'write') && user?.role === 'admin';
+  const canViewApiSettings = hasPermission(user?.role || 'nurse', 'settings', 'read');
 
   const handleSave = () => {
     setSaved(true);
@@ -40,7 +44,7 @@ const Settings: React.FC = () => {
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'api', label: 'API Settings', icon: Database },
+    ...(canViewApiSettings ? [{ id: 'api', label: 'API Settings', icon: Database }] : []),
   ];
 
   return (
@@ -262,38 +266,40 @@ const Settings: React.FC = () => {
                         </label>
                       </div>
                       
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900">System Alerts</p>
-                          <p className="text-sm text-gray-600">Updates about system maintenance and issues</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={notifications.systemAlerts}
-                            onChange={(e) => setNotifications(prev => ({ ...prev, systemAlerts: e.target.checked }))}
-                            className="sr-only peer" 
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                      
-                      {user?.role === 'doctor' && (
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-gray-900">Audit Alerts</p>
-                            <p className="text-sm text-gray-600">Security and compliance notifications</p>
+                      {user?.role === 'admin' && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-gray-900">System Alerts</p>
+                              <p className="text-sm text-gray-600">Updates about system maintenance and issues</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={notifications.systemAlerts}
+                                onChange={(e) => setNotifications(prev => ({ ...prev, systemAlerts: e.target.checked }))}
+                                className="sr-only peer" 
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
                           </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              checked={notifications.auditAlerts}
-                              onChange={(e) => setNotifications(prev => ({ ...prev, auditAlerts: e.target.checked }))}
-                              className="sr-only peer" 
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-gray-900">Audit Alerts</p>
+                              <p className="text-sm text-gray-600">Security and compliance notifications</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={notifications.auditAlerts}
+                                onChange={(e) => setNotifications(prev => ({ ...prev, auditAlerts: e.target.checked }))}
+                                className="sr-only peer" 
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
@@ -301,20 +307,20 @@ const Settings: React.FC = () => {
               </div>
             )}
 
-            {/* API Settings Tab */}
-            {activeTab === 'api' && (
+            {/* API Settings Tab - Admin Only */}
+            {activeTab === 'api' && canViewApiSettings && (
               <div className="p-6">
                 <div className="flex items-center mb-6">
                   <Database className="h-6 w-6 text-gray-600 mr-2" />
                   <h2 className="text-xl font-semibold text-gray-900">API Configuration</h2>
                 </div>
                 
-                {user?.role !== 'doctor' && (
+                {!canModifyApiSettings && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                     <div className="flex items-center">
                       <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
                       <p className="text-sm text-yellow-800">
-                        <strong>Restricted Access:</strong> Only doctors can modify API settings for security reasons.
+                        <strong>Restricted Access:</strong> Only administrators can modify API settings for security reasons.
                       </p>
                     </div>
                   </div>
@@ -332,7 +338,7 @@ const Settings: React.FC = () => {
                           <input
                             type="password"
                             value={apiSettings.drugbankApiKey}
-                            disabled={user?.role !== 'doctor'}
+                            disabled={!canModifyApiSettings}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                           />
                           <Key className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
@@ -347,7 +353,7 @@ const Settings: React.FC = () => {
                           <input
                             type="number"
                             value={apiSettings.maxRequestsPerMinute}
-                            disabled={user?.role !== 'doctor'}
+                            disabled={!canModifyApiSettings}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                           />
                         </div>
@@ -358,7 +364,7 @@ const Settings: React.FC = () => {
                           <input
                             type="number"
                             value={apiSettings.timeout}
-                            disabled={user?.role !== 'doctor'}
+                            disabled={!canModifyApiSettings}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                           />
                         </div>
@@ -373,7 +379,7 @@ const Settings: React.FC = () => {
                           <input 
                             type="checkbox" 
                             checked={apiSettings.enableCache}
-                            disabled={user?.role !== 'doctor'}
+                            disabled={!canModifyApiSettings}
                             className="sr-only peer" 
                           />
                           <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-disabled:opacity-50"></div>
@@ -401,6 +407,29 @@ const Settings: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Admin-only API Management */}
+                  {user?.role === 'admin' && (
+                    <div className="border-t border-gray-200 pt-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">API Management</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <h4 className="font-medium text-blue-900 mb-2">Rate Limiting</h4>
+                          <p className="text-sm text-blue-700 mb-3">Current: 60 requests/minute</p>
+                          <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                            Configure
+                          </button>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <h4 className="font-medium text-green-900 mb-2">API Keys</h4>
+                          <p className="text-sm text-green-700 mb-3">Manage external integrations</p>
+                          <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                            Manage Keys
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

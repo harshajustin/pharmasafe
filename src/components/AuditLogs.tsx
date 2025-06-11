@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/rbac';
 import {
   Search,
   Calendar,
@@ -10,7 +11,8 @@ import {
   Eye,
   Edit,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 import { AuditLog } from '../types';
 
@@ -21,9 +23,12 @@ const AuditLogs: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('7days');
   const [selectedAction, setSelectedAction] = useState('all');
 
+  const canViewAllLogs = hasPermission(user?.role || 'nurse', 'audit', 'read');
+  const canExportLogs = hasPermission(user?.role || 'nurse', 'audit', 'write');
+
   useEffect(() => {
-    // Mock audit logs data
-    const mockAuditLogs: AuditLog[] = [
+    // Mock audit logs data with role-based filtering
+    const allLogs: AuditLog[] = [
       {
         id: '1',
         userId: user?.id || '1',
@@ -103,10 +108,47 @@ const AuditLogs: React.FC = () => {
         details: 'Accessed audit logs for security review',
         timestamp: new Date(Date.now() - 25200000).toISOString(),
         ipAddress: '192.168.1.105'
+      },
+      // Admin-only logs
+      {
+        id: '9',
+        userId: '1',
+        userName: 'System Administrator',
+        action: 'CREATE_USER',
+        resource: 'User Management System',
+        details: 'Created new user account for Dr. James Miller',
+        timestamp: new Date(Date.now() - 28800000).toISOString(),
+        ipAddress: '192.168.1.50'
+      },
+      {
+        id: '10',
+        userId: '1',
+        userName: 'System Administrator',
+        action: 'MODIFY_PERMISSIONS',
+        resource: 'RBAC System',
+        details: 'Updated role permissions for nurse role',
+        timestamp: new Date(Date.now() - 32400000).toISOString(),
+        ipAddress: '192.168.1.50'
       }
     ];
 
-    setLogs(mockAuditLogs);
+    // Filter logs based on user role
+    let filteredLogs = allLogs;
+    if (user?.role === 'nurse') {
+      // Nurses can only see their own actions and general system activities
+      filteredLogs = allLogs.filter(log => 
+        log.userId === user.id || 
+        ['LOGIN', 'VIEW_PATIENT', 'VIEW_AUDIT_LOGS'].includes(log.action)
+      );
+    } else if (user?.role === 'doctor') {
+      // Doctors can see all clinical activities but not admin actions
+      filteredLogs = allLogs.filter(log => 
+        !['CREATE_USER', 'MODIFY_PERMISSIONS', 'DELETE_USER'].includes(log.action)
+      );
+    }
+    // Admins see all logs
+
+    setLogs(filteredLogs);
   }, [user]);
 
   const filteredLogs = logs.filter(log => {
@@ -128,6 +170,7 @@ const AuditLogs: React.FC = () => {
         return <Eye className="h-4 w-4 text-blue-500" />;
       case 'UPDATE_MEDICATION':
       case 'ADD_PATIENT':
+      case 'CREATE_USER':
         return <Edit className="h-4 w-4 text-green-500" />;
       case 'GENERATE_REPORT':
       case 'DOWNLOAD_REPORT':
@@ -136,6 +179,8 @@ const AuditLogs: React.FC = () => {
         return <Activity className="h-4 w-4 text-orange-500" />;
       case 'LOGIN':
         return <Shield className="h-4 w-4 text-gray-500" />;
+      case 'MODIFY_PERMISSIONS':
+        return <Shield className="h-4 w-4 text-red-500" />;
       default:
         return <Activity className="h-4 w-4 text-gray-500" />;
     }
@@ -148,6 +193,7 @@ const AuditLogs: React.FC = () => {
         return 'bg-blue-50 text-blue-700';
       case 'UPDATE_MEDICATION':
       case 'ADD_PATIENT':
+      case 'CREATE_USER':
         return 'bg-green-50 text-green-700';
       case 'GENERATE_REPORT':
       case 'DOWNLOAD_REPORT':
@@ -156,6 +202,8 @@ const AuditLogs: React.FC = () => {
         return 'bg-orange-50 text-orange-700';
       case 'LOGIN':
         return 'bg-gray-50 text-gray-700';
+      case 'MODIFY_PERMISSIONS':
+        return 'bg-red-50 text-red-700';
       default:
         return 'bg-gray-50 text-gray-700';
     }
@@ -169,6 +217,20 @@ const AuditLogs: React.FC = () => {
 
   const uniqueActions = [...new Set(logs.map(log => log.action))];
 
+  if (!canViewAllLogs) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="flex items-center">
+          <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
+          <div>
+            <h3 className="text-lg font-medium text-red-800">Access Denied</h3>
+            <p className="text-red-600">You don't have permission to view audit logs.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -177,7 +239,7 @@ const AuditLogs: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
           <p className="text-gray-600">Monitor all system activities and user actions</p>
         </div>
-        {user?.role === 'doctor' && (
+        {canExportLogs && (
           <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
             <Download className="h-5 w-5 mr-2" />
             Export Logs
@@ -185,13 +247,24 @@ const AuditLogs: React.FC = () => {
         )}
       </div>
 
-      {/* Security Notice */}
+      {/* Role-based Access Notice */}
       {user?.role === 'nurse' && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center">
             <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
             <p className="text-sm text-yellow-800">
               <strong>Note:</strong> As a nurse, you have read-only access to audit logs for your own actions and general system monitoring.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {user?.role === 'doctor' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <Eye className="h-5 w-5 text-blue-600 mr-2" />
+            <p className="text-sm text-blue-800">
+              <strong>Clinical Access:</strong> You can view all clinical activities and patient-related actions.
             </p>
           </div>
         </div>
