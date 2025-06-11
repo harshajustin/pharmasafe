@@ -11,7 +11,8 @@ import {
   LogOut, 
   User,
   Shield,
-  UserCog
+  UserCog,
+  AlertTriangle
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -43,6 +44,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       requiredPermission: { resource: 'patients', action: 'read' as const }
     },
     { 
+      path: '/ddi-analyzer', 
+      icon: AlertTriangle, 
+      label: 'DDI Analyzer',
+      requiredPermission: null, // Custom access control in component
+      customAccess: () => user?.role === 'admin' || user?.role === 'doctor'
+    },
+    { 
       path: '/reports', 
       icon: FileText, 
       label: 'Reports',
@@ -69,9 +77,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   // Filter navigation items based on user permissions
-  const visibleNavItems = navItems.filter(item => 
-    hasPermission(user?.role || 'nurse', item.requiredPermission.resource, item.requiredPermission.action)
-  );
+  const visibleNavItems = navItems.filter(item => {
+    if (item.customAccess) {
+      return item.customAccess();
+    }
+    if (item.requiredPermission) {
+      return hasPermission(user?.role || 'nurse', item.requiredPermission.resource, item.requiredPermission.action);
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">

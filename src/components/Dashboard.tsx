@@ -39,7 +39,8 @@ interface QuickAction {
   icon: React.ElementType;
   color: string;
   action: () => void;
-  requiredPermission: { resource: string; action: string };
+  requiredPermission: { resource: string; action: string } | null;
+  customAccess?: () => boolean;
 }
 
 interface DashboardWidget {
@@ -126,6 +127,19 @@ const Dashboard: React.FC = () => {
       });
     }
 
+    // DDI Analyzer - Admin and Doctor only
+    if (user?.role === 'admin' || user?.role === 'doctor') {
+      actions.push({
+        id: 'ddi-analyzer',
+        label: 'Analyze Drug Interactions',
+        icon: AlertTriangle,
+        color: 'bg-orange-50 hover:bg-orange-100 text-orange-700',
+        action: () => window.location.href = '/ddi-analyzer',
+        requiredPermission: null,
+        customAccess: () => user?.role === 'admin' || user?.role === 'doctor'
+      });
+    }
+
     if (hasPermission(user?.role || 'nurse', 'reports', 'execute')) {
       actions.push({
         id: 'generate-report',
@@ -134,17 +148,6 @@ const Dashboard: React.FC = () => {
         color: 'bg-green-50 hover:bg-green-100 text-green-700',
         action: () => console.log('Generate report'),
         requiredPermission: { resource: 'reports', action: 'execute' }
-      });
-    }
-
-    if (hasPermission(user?.role || 'nurse', 'interactions', 'execute')) {
-      actions.push({
-        id: 'check-interactions',
-        label: 'Check Interactions',
-        icon: AlertTriangle,
-        color: 'bg-yellow-50 hover:bg-yellow-100 text-yellow-700',
-        action: () => console.log('Check interactions'),
-        requiredPermission: { resource: 'interactions', action: 'execute' }
       });
     }
 

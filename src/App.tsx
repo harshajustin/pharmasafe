@@ -9,6 +9,7 @@ import Reports from './components/Reports';
 import AuditLogs from './components/AuditLogs';
 import Settings from './components/Settings';
 import UserManagement from './components/UserManagement';
+import DDIAnalyzer from './components/DDIAnalyzer';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const AppRoutes: React.FC = () => {
@@ -36,6 +37,16 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute requiredPermission={{ resource: 'patients', action: 'read' }}>
             <Layout>
               <PatientList />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ddi-analyzer"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <DDIAnalyzer />
             </Layout>
           </ProtectedRoute>
         }
