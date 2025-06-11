@@ -8,20 +8,8 @@ import PatientList from './components/PatientList';
 import Reports from './components/Reports';
 import AuditLogs from './components/AuditLogs';
 import Settings from './components/Settings';
-
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
-};
+import UserManagement from './components/UserManagement';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -45,7 +33,7 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/patients"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredPermission={{ resource: 'patients', action: 'read' }}>
             <Layout>
               <PatientList />
             </Layout>
@@ -55,7 +43,7 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/reports"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredPermission={{ resource: 'reports', action: 'read' }}>
             <Layout>
               <Reports />
             </Layout>
@@ -65,7 +53,7 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/audit"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredPermission={{ resource: 'audit', action: 'read' }}>
             <Layout>
               <AuditLogs />
             </Layout>
@@ -73,9 +61,19 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/users"
+        element={
+          <ProtectedRoute requiredPermission={{ resource: 'users', action: 'read' }}>
+            <Layout>
+              <UserManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/settings"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredPermission={{ resource: 'settings', action: 'read' }}>
             <Layout>
               <Settings />
             </Layout>

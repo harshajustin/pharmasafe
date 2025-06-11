@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Shield, Mail, Lock, AlertCircle, User } from 'lucide-react';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -22,6 +22,12 @@ const LoginForm: React.FC = () => {
       setError('Invalid email or password');
     }
   };
+
+  const demoUsers = [
+    { role: 'Administrator', email: 'admin@hospital.com', description: 'Full system access' },
+    { role: 'Doctor', email: 'dr.smith@hospital.com', description: 'Patient management & analysis' },
+    { role: 'Nurse', email: 'nurse.johnson@hospital.com', description: 'Read-only access' },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
@@ -106,10 +112,30 @@ const LoginForm: React.FC = () => {
 
           <div className="mt-6 border-t border-gray-200 pt-6">
             <div className="text-sm text-gray-600">
-              <p className="font-medium">Demo Credentials:</p>
-              <p>Doctor: dr.smith@hospital.com</p>
-              <p>Nurse: nurse.johnson@hospital.com</p>
-              <p>Password: password</p>
+              <p className="font-medium mb-3">Demo Credentials (Password: password):</p>
+              <div className="space-y-3">
+                {demoUsers.map((user, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 text-gray-500 mr-2" />
+                        <div>
+                          <p className="font-medium text-gray-900">{user.role}</p>
+                          <p className="text-xs text-gray-500">{user.description}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEmail(user.email)}
+                        className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                      >
+                        Use
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">{user.email}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

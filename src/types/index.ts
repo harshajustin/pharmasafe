@@ -2,9 +2,11 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'doctor' | 'nurse';
+  role: 'admin' | 'doctor' | 'nurse';
   department?: string;
   createdAt: string;
+  isActive: boolean;
+  permissions?: string[];
 }
 
 export interface Patient {
@@ -18,6 +20,8 @@ export interface Patient {
   medicalHistory: string[];
   createdAt: string;
   updatedAt: string;
+  createdBy: string;
+  lastModifiedBy: string;
 }
 
 export interface Medication {
@@ -64,4 +68,37 @@ export interface AuditLog {
   details: string;
   timestamp: string;
   ipAddress?: string;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+  description: string;
+  resource: string;
+  action: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  permissions: Permission[];
+}
+
+// RBAC Types
+export type UserRole = 'admin' | 'doctor' | 'nurse';
+
+export interface RolePermissions {
+  [key: string]: {
+    read: boolean;
+    write: boolean;
+    delete: boolean;
+    execute?: boolean;
+  };
+}
+
+export interface RBACConfig {
+  admin: RolePermissions;
+  doctor: RolePermissions;
+  nurse: RolePermissions;
 }

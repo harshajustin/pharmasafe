@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePatients } from '../hooks/usePatients';
 import { useDrugInteractions } from '../hooks/useDrugInteractions';
 import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/rbac';
 import {
   FileText,
   Download,
@@ -11,7 +12,8 @@ import {
   AlertTriangle,
   BarChart3,
   Filter,
-  PieChart
+  PieChart,
+  Lock
 } from 'lucide-react';
 import { InteractionReport } from '../types';
 
@@ -24,6 +26,9 @@ const Reports: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('7days');
   const [generating, setGenerating] = useState(false);
+
+  const canWriteReports = hasPermission(user?.role || 'nurse', 'reports', 'write');
+  const canExecuteReports = hasPermission(user?.role || 'nurse', 'reports', 'execute');
 
   useEffect(() => {
     // Mock reports data
@@ -91,6 +96,8 @@ const Reports: React.FC = () => {
   }, [user]);
 
   const generateNewReport = async () => {
+    if (!canExecuteReports) return;
+    
     setGenerating(true);
     
     // Simulate report generation
@@ -168,25 +175,44 @@ const Reports: React.FC = () => {
           <p className="text-gray-600">Generate and manage drug interaction analysis reports</p>
         </div>
         <div className="flex space-x-3">
-          <button 
-            onClick={generateNewReport}
-            disabled={generating}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
-          >
-            {generating ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Generating...
-              </>
-            ) : (
-              <>
-                <FileText className="h-5 w-5 mr-2" />
-                Generate Report
-              </>
-            )}
-          </button>
+          {canExecuteReports ? (
+            <button 
+              onClick={generateNewReport}
+              disabled={generating}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+            >
+              {generating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-5 w-5 mr-2" />
+                  Generate Report
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="bg-gray-100 text-gray-500 px-4 py-2 rounded-lg flex items-center">
+              <Lock className="h-5 w-5 mr-2" />
+              View Only Access
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Role-based access notice */}
+      {!canExecuteReports && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+            <p className="text-sm text-yellow-800">
+              <strong>Limited Access:</strong> You can view existing reports but cannot generate new ones. Contact a doctor to request new reports.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

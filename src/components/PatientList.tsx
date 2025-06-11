@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { usePatients } from '../hooks/usePatients';
 import { useDrugInteractions } from '../hooks/useDrugInteractions';
+import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/rbac';
 import { 
   Search, 
   Plus, 
@@ -10,17 +12,22 @@ import {
   Pill,
   FileText,
   Edit,
-  Eye
+  Eye,
+  Lock
 } from 'lucide-react';
 import { Patient, DrugInteraction } from '../types';
 
 const PatientList: React.FC = () => {
+  const { user } = useAuth();
   const { patients, loading } = usePatients();
   const { analyzeDrugInteractions } = useDrugInteractions();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
   const [analyzingInteractions, setAnalyzingInteractions] = useState(false);
+
+  const canWritePatients = hasPermission(user?.role || 'nurse', 'patients', 'write');
+  const canExecuteAnalysis = hasPermission(user?.role || 'nurse', 'interactions', 'execute');
 
   const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -29,7 +36,7 @@ const PatientList: React.FC = () => {
 
   const handlePatientSelect = async (patient: Patient) => {
     setSelectedPatient(patient);
-    if (patient.currentMedications.length > 1) {
+    if (patient.currentMedications.length > 1 && canExecuteAnalysis) {
       setAnalyzingInteractions(true);
       const patientInteractions = await analyzeDrugInteractions(patient.currentMedications);
       setInteractions(patientInteractions);
@@ -70,11 +77,30 @@ const PatientList: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Patient Management</h1>
           <p className="text-gray-600">Monitor patient medications and drug interactions</p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
-          <Plus className="h-5 w-5 mr-2" />
-          Add Patient
-        </button>
+        {canWritePatients ? (
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+            <Plus className="h-5 w-5 mr-2" />
+            Add Patient
+          </button>
+        ) : (
+          <div className="bg-gray-100 text-gray-500 px-4 py-2 rounded-lg flex items-center">
+            <Lock className="h-5 w-5 mr-2" />
+            Read Only Access
+          </div>
+        )}
       </div>
+
+      {/* Role-based access notice */}
+      {!canExecuteAnalysis && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+            <p className="text-sm text-yellow-800">
+              <strong>Limited Access:</strong> You can view patient data but cannot perform drug interaction analysis. Contact a doctor for analysis requests.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative">
@@ -120,7 +146,7 @@ const PatientList: React.FC = () => {
                         <span className="text-xs text-gray-500">{patient.age} years old</span>
                       </div>
                     </div>
-                    {patient.currentMedications.length > 1 && (
+                    {patient.currentMedications.length > 1 && canExecuteAnalysis && (
                       <AlertTriangle className="h-5 w-5 text-yellow-500" />
                     )}
                   </div>
@@ -139,12 +165,21 @@ const PatientList: React.FC = () => {
                 <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-900">Patient Details</h2>
                   <div className="flex space-x-2">
-                    <button className="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50">
-                      <Edit className="h-5 w-5" />
-                    </button>
-                    <button className="text-green-600 hover:text-green-700 p-2 rounded-lg hover:bg-green-50">
-                      <FileText className="h-5 w-5" />
-                    </button>
+                    {canWritePatients ? (
+                      <>
+                        <button className="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50">
+                          <Edit className="h-5 w-5" />
+                        </button>
+                        <button className="text-green-600 hover:text-green-700 p-2 rounded-lg hover:bg-green-50">
+                          <FileText className="h-5 w-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <Lock className="h-4 w-4 mr-1" />
+                        View Only
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="p-6">
@@ -221,10 +256,23 @@ const PatientList: React.FC = () => {
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                     <AlertTriangle className="h-5 w-5 mr-2" />
                     Drug Interactions
+                    {!canExecuteAnalysis && (
+                      <Lock className="h-4 w-4 ml-2 text-gray-400" />
+                    )}
                   </h2>
                 </div>
                 <div className="p-6">
-                  {analyzingInteractions ? (
+                  {!canExecuteAnalysis ? (
+                    <div className="text-center py-8">
+                      <Lock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">
+                        You don't have permission to perform drug interaction analysis.
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Contact a doctor to request interaction analysis for this patient.
+                      </p>
+                    </div>
+                  ) : analyzingInteractions ? (
                     <div className="flex items-center justify-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
                       <span className="text-gray-600">Analyzing interactions...</span>

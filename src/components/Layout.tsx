@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { hasPermission, getRoleDisplayName, getRoleColor } from '../utils/rbac';
 import { 
   Home, 
   Users, 
@@ -9,7 +10,8 @@ import {
   Settings, 
   LogOut, 
   User,
-  Shield
+  Shield,
+  UserCog
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -26,13 +28,50 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
+  // Define navigation items with role-based visibility
   const navItems = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/patients', icon: Users, label: 'Patients' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/audit', icon: Activity, label: 'Audit Logs' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { 
+      path: '/', 
+      icon: Home, 
+      label: 'Dashboard',
+      requiredPermission: { resource: 'dashboard', action: 'read' as const }
+    },
+    { 
+      path: '/patients', 
+      icon: Users, 
+      label: 'Patients',
+      requiredPermission: { resource: 'patients', action: 'read' as const }
+    },
+    { 
+      path: '/reports', 
+      icon: FileText, 
+      label: 'Reports',
+      requiredPermission: { resource: 'reports', action: 'read' as const }
+    },
+    { 
+      path: '/audit', 
+      icon: Activity, 
+      label: 'Audit Logs',
+      requiredPermission: { resource: 'audit', action: 'read' as const }
+    },
+    { 
+      path: '/users', 
+      icon: UserCog, 
+      label: 'User Management',
+      requiredPermission: { resource: 'users', action: 'read' as const }
+    },
+    { 
+      path: '/settings', 
+      icon: Settings, 
+      label: 'Settings',
+      requiredPermission: { resource: 'settings', action: 'read' as const }
+    },
   ];
+
+  // Filter navigation items based on user permissions
+  const visibleNavItems = navItems.filter(item => 
+    hasPermission(user?.role || 'nurse', item.requiredPermission.resource, item.requiredPermission.action)
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -53,14 +92,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                <div className="flex items-center mt-1">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user?.role || 'nurse')}`}>
+                    <Shield className="h-3 w-3 mr-1" />
+                    {getRoleDisplayName(user?.role || 'nurse')}
+                  </span>
+                </div>
+                {user?.department && (
+                  <p className="text-xs text-gray-500 mt-1">{user.department}</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-4 space-y-2">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               
@@ -80,6 +127,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               );
             })}
           </nav>
+
+          {/* Role-based feature notice */}
+          {user?.role === 'nurse' && (
+            <div className="px-4 py-3 mx-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-700">
+                <strong>Note:</strong> You have read-only access. Contact an administrator for additional permissions.
+              </p>
+            </div>
+          )}
 
           {/* Logout */}
           <div className="px-4 py-4 border-t border-gray-200">
