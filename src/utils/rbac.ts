@@ -18,7 +18,7 @@ export const RBAC_CONFIG: RBACConfig = {
     medications: { read: true, write: true, delete: false },
     reports: { read: true, write: true, delete: false, execute: true },
     interactions: { read: true, write: true, delete: false, execute: true },
-    audit: { read: true, write: false, delete: false },
+    audit: { read: false, write: false, delete: false }, // Changed to false
     settings: { read: true, write: true, delete: false },
     dashboard: { read: true, write: false, delete: false },
   },
@@ -28,7 +28,7 @@ export const RBAC_CONFIG: RBACConfig = {
     medications: { read: true, write: false, delete: false },
     reports: { read: true, write: false, delete: false, execute: false },
     interactions: { read: true, write: false, delete: false, execute: false },
-    audit: { read: true, write: false, delete: false },
+    audit: { read: false, write: false, delete: false }, // Changed to false
     settings: { read: true, write: false, delete: false },
     dashboard: { read: true, write: false, delete: false },
   },

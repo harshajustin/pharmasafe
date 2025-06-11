@@ -23,16 +23,22 @@ const AuditLogs: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('7days');
   const [selectedAction, setSelectedAction] = useState('all');
 
-  const canViewAllLogs = hasPermission(user?.role || 'nurse', 'audit', 'read');
-  const canExportLogs = hasPermission(user?.role || 'nurse', 'audit', 'write');
+  // Only admins can view audit logs
+  const canViewAuditLogs = user?.role === 'admin';
+  const canExportLogs = user?.role === 'admin';
 
   useEffect(() => {
-    // Mock audit logs data with role-based filtering
+    // Only load logs if user is admin
+    if (!canViewAuditLogs) {
+      return;
+    }
+
+    // Mock audit logs data - only for admins
     const allLogs: AuditLog[] = [
       {
         id: '1',
-        userId: user?.id || '1',
-        userName: user?.name || 'Dr. Sarah Smith',
+        userId: '2',
+        userName: 'Dr. Sarah Smith',
         action: 'VIEW_PATIENT',
         resource: 'Patient: John Anderson (MID-001)',
         details: 'Viewed patient details and medication list',
@@ -41,8 +47,8 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '2',
-        userId: user?.id || '1',
-        userName: user?.name || 'Dr. Sarah Smith',
+        userId: '2',
+        userName: 'Dr. Sarah Smith',
         action: 'GENERATE_REPORT',
         resource: 'DDI Report for John Anderson',
         details: 'Generated drug interaction analysis report',
@@ -51,7 +57,7 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '3',
-        userId: '2',
+        userId: '3',
         userName: 'Nurse Michael Johnson',
         action: 'UPDATE_MEDICATION',
         resource: 'Patient: Maria Rodriguez (MID-002)',
@@ -61,8 +67,8 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '4',
-        userId: user?.id || '1',
-        userName: user?.name || 'Dr. Sarah Smith',
+        userId: '2',
+        userName: 'Dr. Sarah Smith',
         action: 'ANALYZE_INTERACTIONS',
         resource: 'Patient: John Anderson (MID-001)',
         details: 'Performed drug-drug interaction analysis',
@@ -71,7 +77,7 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '5',
-        userId: '2',
+        userId: '3',
         userName: 'Nurse Michael Johnson',
         action: 'ADD_PATIENT',
         resource: 'New Patient: Robert Wilson (MID-003)',
@@ -81,8 +87,8 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '6',
-        userId: user?.id || '1',
-        userName: user?.name || 'Dr. Sarah Smith',
+        userId: '2',
+        userName: 'Dr. Sarah Smith',
         action: 'LOGIN',
         resource: 'Authentication System',
         details: 'User logged into the system',
@@ -91,8 +97,8 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '7',
-        userId: user?.id || '1',
-        userName: user?.name || 'Dr. Sarah Smith',
+        userId: '2',
+        userName: 'Dr. Sarah Smith',
         action: 'DOWNLOAD_REPORT',
         resource: 'DDI Report for Maria Rodriguez',
         details: 'Downloaded interaction analysis report',
@@ -101,18 +107,17 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '8',
-        userId: '2',
+        userId: '3',
         userName: 'Nurse Michael Johnson',
         action: 'VIEW_AUDIT_LOGS',
         resource: 'Audit Log System',
-        details: 'Accessed audit logs for security review',
+        details: 'Attempted to access audit logs (access denied)',
         timestamp: new Date(Date.now() - 25200000).toISOString(),
         ipAddress: '192.168.1.105'
       },
-      // Admin-only logs
       {
         id: '9',
-        userId: '1',
+        userId: user?.id || '1',
         userName: 'System Administrator',
         action: 'CREATE_USER',
         resource: 'User Management System',
@@ -122,7 +127,7 @@ const AuditLogs: React.FC = () => {
       },
       {
         id: '10',
-        userId: '1',
+        userId: user?.id || '1',
         userName: 'System Administrator',
         action: 'MODIFY_PERMISSIONS',
         resource: 'RBAC System',
@@ -132,24 +137,8 @@ const AuditLogs: React.FC = () => {
       }
     ];
 
-    // Filter logs based on user role
-    let filteredLogs = allLogs;
-    if (user?.role === 'nurse') {
-      // Nurses can only see their own actions and general system activities
-      filteredLogs = allLogs.filter(log => 
-        log.userId === user.id || 
-        ['LOGIN', 'VIEW_PATIENT', 'VIEW_AUDIT_LOGS'].includes(log.action)
-      );
-    } else if (user?.role === 'doctor') {
-      // Doctors can see all clinical activities but not admin actions
-      filteredLogs = allLogs.filter(log => 
-        !['CREATE_USER', 'MODIFY_PERMISSIONS', 'DELETE_USER'].includes(log.action)
-      );
-    }
-    // Admins see all logs
-
-    setLogs(filteredLogs);
-  }, [user]);
+    setLogs(allLogs);
+  }, [user, canViewAuditLogs]);
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = 
@@ -217,14 +206,33 @@ const AuditLogs: React.FC = () => {
 
   const uniqueActions = [...new Set(logs.map(log => log.action))];
 
-  if (!canViewAllLogs) {
+  // Show access denied for non-admin users
+  if (!canViewAuditLogs) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="flex items-center">
-          <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
-          <div>
-            <h3 className="text-lg font-medium text-red-800">Access Denied</h3>
-            <p className="text-red-600">You don't have permission to view audit logs.</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+          <div className="text-center">
+            <div className="bg-red-100 rounded-full p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-red-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h2>
+            <p className="text-gray-600 mb-4">
+              Audit logs are only accessible to system administrators for security and compliance purposes.
+            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+                <p className="text-sm text-yellow-800">
+                  <strong>Your Role:</strong> {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => window.history.back()}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Go Back
+            </button>
           </div>
         </div>
       </div>
@@ -247,28 +255,15 @@ const AuditLogs: React.FC = () => {
         )}
       </div>
 
-      {/* Role-based Access Notice */}
-      {user?.role === 'nurse' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
-            <p className="text-sm text-yellow-800">
-              <strong>Note:</strong> As a nurse, you have read-only access to audit logs for your own actions and general system monitoring.
-            </p>
-          </div>
+      {/* Admin Access Notice */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center">
+          <Shield className="h-5 w-5 text-blue-600 mr-2" />
+          <p className="text-sm text-blue-800">
+            <strong>Administrator Access:</strong> You have full access to system audit logs and security monitoring.
+          </p>
         </div>
-      )}
-
-      {user?.role === 'doctor' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <Eye className="h-5 w-5 text-blue-600 mr-2" />
-            <p className="text-sm text-blue-800">
-              <strong>Clinical Access:</strong> You can view all clinical activities and patient-related actions.
-            </p>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
